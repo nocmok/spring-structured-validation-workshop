@@ -1,0 +1,90 @@
+openapi: 3.0.3
+info:
+  title: Structured Validation Demo API
+  version: "1.0"
+
+paths:
+  /complex-risks:
+    post:
+      tags:
+        - complex-risk
+      operationId: createComplexRisk
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateComplexRiskRequest"
+      responses:
+        "200":
+          description: Complex risk created
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    CreateComplexRiskRequest:
+      type: object
+      required:
+        - name
+        - insuranceType
+        - country
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        insuranceType:
+          $ref: "#/components/schemas/InsuranceType"
+        country:
+          $ref: "#/components/schemas/Country"
+
+    InsuranceType:
+      type: string
+      enum:
+        - LIFE
+        - LIABILITY
+        - PROPERTY
+
+    Country:
+      type: string
+      enum:
+        - US
+        - DE
+        - RU
+
+    Error:
+      type: object
+      required:
+        - code
+        - details
+      properties:
+        code:
+          $ref: "#/components/schemas/ErrorCode"
+        message:
+          type: string
+          nullable: true
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/ErrorDetail"
+
+    ErrorDetail:
+      type: object
+      required:
+        - field
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+          nullable: true
+
+    ErrorCode:
+      type: string
+      enum:
+        - VALIDATION_ERROR
