@@ -4,20 +4,24 @@ info:
   version: "1.0"
 
 paths:
-  /complex-risks:
+  /product/calculate:
     post:
       tags:
-        - complex-risk
-      operationId: createComplexRisk
+        - product
+      operationId: calculate
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateComplexRiskRequest"
+              $ref: "#/components/schemas/CalculateRequest"
       responses:
         "200":
-          description: Complex risk created
+          description: Calculation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculateResponse"
         "400":
           description: Validation error
           content:
@@ -27,35 +31,70 @@ paths:
 
 components:
   schemas:
-    CreateComplexRiskRequest:
+    CalculateRequest:
+      type: object
+      required:
+        - risks
+        - insurant
+      properties:
+        risks:
+          type: array
+          minItems: 1
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/Risk"
+        insurant:
+          $ref: "#/components/schemas/Insurant"
+
+    CalculateResponse:
+      type: object
+      required:
+        - premium
+      properties:
+        premium:
+          type: number
+
+    Insurant:
       type: object
       required:
         - name
-        - insuranceType
-        - country
+        - email
       properties:
         name:
+          $ref: "#/components/schemas/Name"
+        email:
+          $ref: "#/components/schemas/Email"
+
+    Name:
+      type: string
+      pattern: '^(?!\s*$).+'
+      minLength: 1
+      maxLength: 100
+
+    Email:
+      type: string
+      format: email
+      minLength: 1
+      maxLength: 100
+
+    Risk:
+      type: object
+      required:
+        - id
+        - insuranceType
+      properties:
+        id:
           type: string
-          minLength: 1
-          maxLength: 100
+          format: uuid
         insuranceType:
           $ref: "#/components/schemas/InsuranceType"
-        country:
-          $ref: "#/components/schemas/Country"
 
     InsuranceType:
       type: string
       enum:
-        - LIFE
-        - LIABILITY
-        - PROPERTY
-
-    Country:
-      type: string
-      enum:
-        - US
-        - DE
-        - RU
+        - "LIFE"
+        - "PROPERTY"
+        - "LIABILITY"
 
     Error:
       type: object
@@ -88,3 +127,4 @@ components:
       type: string
       enum:
         - VALIDATION_ERROR
+        - INTERNAL_ERROR

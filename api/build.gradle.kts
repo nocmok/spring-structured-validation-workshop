@@ -1,10 +1,10 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-	kotlin("jvm")
 	id("org.springframework.boot")
 	id("io.spring.dependency-management")
 	id("org.openapi.generator")
+	id("java-library")
 }
 
 java {
@@ -22,12 +22,7 @@ dependencies {
 	api("jakarta.servlet:jakarta.servlet-api")
 	api("jakarta.validation:jakarta.validation-api")
 	api("com.fasterxml.jackson.core:jackson-annotations")
-}
-
-kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
-	}
+	api("jakarta.annotation:jakarta.annotation-api")
 }
 
 // This module only produces a plain library jar, not a runnable Spring Boot application.
@@ -42,7 +37,7 @@ tasks.named<Jar>("jar") {
 val openApiGeneratedDir = layout.buildDirectory.dir("generated/openapi")
 
 openApiGenerate {
-	generatorName.set("kotlin-spring")
+	generatorName.set("spring")
 	inputSpec.set(project.file("openapi.yaml").path)
 	outputDir.set(openApiGeneratedDir.get().asFile.path)
 	apiPackage.set("com.github.nocmok.api")
@@ -56,16 +51,17 @@ openApiGenerate {
 			"exceptionHandler" to "false",
 			"gradleBuildFile" to "false",
 			"documentationProvider" to "none",
+			"openApiNullable" to "false",
 		)
 	)
 }
 
 sourceSets {
 	main {
-		kotlin.srcDir(openApiGeneratedDir.map { it.dir("src/main/kotlin") })
+		java.srcDir(openApiGeneratedDir.map { it.dir("src/main/java") })
 	}
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+tasks.withType<JavaCompile> {
 	dependsOn(tasks.openApiGenerate)
 }
